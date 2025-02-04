@@ -4,10 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
-	"time"
 
 	"github.com/eulixir/workspace-automations/config"
 )
@@ -97,22 +95,6 @@ func writeSettings(settings *map[string]interface{}, cfg *config.Config) error {
 	err = os.WriteFile(path, jsonData, 0644)
 	if err != nil {
 		return fmt.Errorf("error writing settings: %w", err)
-	}
-
-	return nil
-}
-
-func reloadEditor(cfg *config.Config) error {
-	codeEditor := cfg.CodeEditor.Editor
-
-	time.Sleep(2 * time.Second)
-
-	killCmd := exec.Command("pkill", "-KILL", codeEditor)
-	_ = killCmd.Run()
-
-	startCmd := exec.Command("open", "-a", codeEditor)
-	if err := startCmd.Run(); err != nil {
-		return fmt.Errorf("failed to restart editor: %w", err)
 	}
 
 	return nil
