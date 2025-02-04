@@ -54,10 +54,6 @@ func RunCodeEditorChanges(cfg *config.Config, theme string, wallpaper string) er
 		return fmt.Errorf("error writing settings: %w", err)
 	}
 
-	if err := reloadEditor(cfg); err != nil {
-		return fmt.Errorf("error reloading editor: %w", err)
-	}
-
 	return nil
 }
 
