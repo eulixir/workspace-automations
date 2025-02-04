@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/eulixir/workspace-automations/config"
@@ -23,12 +24,37 @@ func SetMacOSTheme(isDarkMode bool) {
 }
 
 func ChangeThemeOnStart(cfg *config.Config) {
-	now := time.Now()
-	hour := now.Hour()
+	currentHour := time.Now().Hour()
+	// currentTheme := GetCurrentTheme()
 
-	if hour >= 6 && hour < 18 {
-		NightRoutine(cfg)
-	} else {
+	// if currentHour >= 6 && currentHour < 18 {
+	// 	if currentTheme == "dark" {
+	// 		MorningRoutine(cfg)
+	// 	}
+	// } else {
+	// 	if currentTheme == "light" {
+	// 		NightRoutine(cfg)
+	// 	}
+	// }
+	if currentHour >= 6 && currentHour < 18 {
 		MorningRoutine(cfg)
+	} else {
+		NightRoutine(cfg)
 	}
+}
+
+func GetCurrentTheme() string {
+	cmd := exec.Command("osascript", "-e", "tell application \"System Events\" to tell appearance preferences to get dark mode")
+	output, err := cmd.Output()
+	if err != nil {
+		log.Println("Error getting current theme:", err)
+		return "false"
+	}
+
+	theme := strings.TrimSpace(string(output))
+	if theme == "true" {
+		return "dark"
+	}
+
+	return "light"
 }

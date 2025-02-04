@@ -20,6 +20,7 @@ type CodeEditor struct {
 	NightTheme   string `envconfig:"NIGHT_THEME"`
 
 	SettingsPath string `envconfig:"CODE_EDITOR_SETTINGS_PATH"`
+	Editor       string `envconfig:"EDITOR"`
 }
 
 type Wallpaper struct {

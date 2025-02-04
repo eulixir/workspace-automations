@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/eulixir/workspace-automations/config"
 )
@@ -21,7 +23,7 @@ func expandPath(path string) (string, error) {
 	return path, nil
 }
 
-func ReadSettingsRaw(cfg *config.Config) (*map[string]interface{}, error) {
+func readSettingsRaw(cfg *config.Config) (*map[string]interface{}, error) {
 	path, err := expandPath(cfg.CodeEditor.SettingsPath)
 	if err != nil {
 		return nil, fmt.Errorf("error expanding path: %w", err)
@@ -41,32 +43,47 @@ func ReadSettingsRaw(cfg *config.Config) (*map[string]interface{}, error) {
 }
 
 func RunCodeEditorChanges(cfg *config.Config, theme string, wallpaper string) error {
-	settings, err := ReadSettingsRaw(cfg)
+	settings, err := readSettingsRaw(cfg)
 	if err != nil {
 		return fmt.Errorf("error reading settings: %w", err)
 	}
 
-	UpdateCodeTheme(theme, cfg, settings)
-	UpdateBackground(wallpaper, cfg, settings)
+	updateCodeTheme(theme, settings)
+	updateBackground(wallpaper, settings)
 
-	err = WriteSettings(settings, cfg)
+	err = writeSettings(settings, cfg)
 	if err != nil {
 		return fmt.Errorf("error writing settings: %w", err)
+	}
+
+	if err := reloadEditor(cfg); err != nil {
+		return fmt.Errorf("error reloading editor: %w", err)
 	}
 
 	return nil
 }
 
-func UpdateCodeTheme(theme string, cfg *config.Config, settings *map[string]interface{}) {
+func updateCodeTheme(theme string, settings *map[string]interface{}) {
 	(*settings)["workbench.colorTheme"] = theme
 
 }
 
-func UpdateBackground(url string, cfg *config.Config, settings *map[string]interface{}) {
-	(*settings)["background.fullscreen.images"] = []string{url}
+func updateBackground(url string, settings *map[string]interface{}) {
+	bgSettings, ok := (*settings)["background.fullscreen"].(map[string]interface{})
+	if !ok {
+		bgSettings = map[string]interface{}{
+			"opacity":  0.85,
+			"position": "center",
+			"size":     "cover",
+		}
+	}
+
+	bgSettings["images"] = []string{url}
+
+	(*settings)["background.fullscreen"] = bgSettings
 }
 
-func WriteSettings(settings *map[string]interface{}, cfg *config.Config) error {
+func writeSettings(settings *map[string]interface{}, cfg *config.Config) error {
 	jsonData, err := json.MarshalIndent(settings, "", "    ")
 	if err != nil {
 		return fmt.Errorf("error marshalling settings: %w", err)
@@ -80,6 +97,22 @@ func WriteSettings(settings *map[string]interface{}, cfg *config.Config) error {
 	err = os.WriteFile(path, jsonData, 0644)
 	if err != nil {
 		return fmt.Errorf("error writing settings: %w", err)
+	}
+
+	return nil
+}
+
+func reloadEditor(cfg *config.Config) error {
+	codeEditor := cfg.CodeEditor.Editor
+
+	time.Sleep(2 * time.Second)
+
+	killCmd := exec.Command("pkill", "-KILL", codeEditor)
+	_ = killCmd.Run()
+
+	startCmd := exec.Command("open", "-a", codeEditor)
+	if err := startCmd.Run(); err != nil {
+		return fmt.Errorf("failed to restart editor: %w", err)
 	}
 
 	return nil
