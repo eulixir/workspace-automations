@@ -27,8 +27,8 @@ func ChangeThemeOnStart(cfg *config.Config) {
 	hour := now.Hour()
 
 	if hour >= 6 && hour < 18 {
-		MorningRoutine(cfg)
-	} else {
 		NightRoutine(cfg)
+	} else {
+		MorningRoutine(cfg)
 	}
 }

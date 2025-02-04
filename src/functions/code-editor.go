@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -22,99 +21,66 @@ func expandPath(path string) (string, error) {
 	return path, nil
 }
 
-func UpdateTheme(theme string, cfg *config.Config) error {
-	path, err := expandPath(cfg.CodeEditor.SettingsPath)
-	if err != nil {
-		return fmt.Errorf("error expanding path: %w", err)
-	}
-
-	cmd := exec.Command("jq", fmt.Sprintf(".\"workbench.colorTheme\" = \"%s\"", theme), path)
-
-	content, err := os.ReadFile(path)
-	if err != nil {
-		return fmt.Errorf("error reading settings file: %w", err)
-	}
-
-	cmd.Stdin = strings.NewReader(string(content))
-
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("error updating theme: %w", err)
-	}
-
-	err = os.WriteFile(path, output, 0644)
-	if err != nil {
-		return fmt.Errorf("error writing updated settings: %w", err)
-	}
-
-	return nil
-}
-
-func UpdateBackground(url string, cfg *config.Config) error {
-	path, err := expandPath(cfg.CodeEditor.SettingsPath)
-	if err != nil {
-		return fmt.Errorf("error expanding path: %w", err)
-	}
-
-	cmd := exec.Command("jq", fmt.Sprintf(".\"workbench.background\" = \"%s\"", url), path)
-
-	content, err := os.ReadFile(path)
-	if err != nil {
-		return fmt.Errorf("error reading settings file: %w", err)
-	}
-
-	cmd.Stdin = strings.NewReader(string(content))
-
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		return fmt.Errorf("error updating background: %w", err)
-	}
-
-	err = os.WriteFile(path, output, 0644)
-	if err != nil {
-		return fmt.Errorf("error writing updated settings: %w", err)
-	}
-
-	return nil
-}
-
-func ReadSettings(cfg *config.Config) (*SettingsJson, error) {
+func ReadSettingsRaw(cfg *config.Config) (*map[string]interface{}, error) {
 	path, err := expandPath(cfg.CodeEditor.SettingsPath)
 	if err != nil {
 		return nil, fmt.Errorf("error expanding path: %w", err)
 	}
 
-	path = filepath.Clean(path)
-
-	info, err := os.Stat(path)
+	content, err := os.ReadFile(path)
 	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, fmt.Errorf("settings file does not exist at %s", path)
-		}
-		if os.IsPermission(err) {
-			return nil, fmt.Errorf("permission denied accessing settings at %s", path)
-		}
-		return nil, fmt.Errorf("error accessing settings file: %w", err)
+		return nil, fmt.Errorf("error reading settings: %w", err)
 	}
 
-	if !info.Mode().IsRegular() {
-		return nil, fmt.Errorf("%s is not a regular file", path)
+	var settings map[string]interface{}
+	if err := json.Unmarshal(content, &settings); err != nil {
+		return nil, fmt.Errorf("error parsing settings: %w", err)
 	}
 
-	settings, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("error reading settings at %s: %w", path, err)
-	}
-
-	var settingsJson SettingsJson
-	err = json.Unmarshal(settings, &settingsJson)
-	if err != nil {
-		return nil, fmt.Errorf("error unmarshalling settings: %w\nContent: %s", err, settings)
-	}
-
-	return &settingsJson, nil
+	return &settings, nil
 }
 
-type SettingsJson struct {
-	WorkbenchColorTheme string `json:"workbench.colorTheme"`
+func RunCodeEditorChanges(cfg *config.Config, theme string, wallpaper string) error {
+	settings, err := ReadSettingsRaw(cfg)
+	if err != nil {
+		return fmt.Errorf("error reading settings: %w", err)
+	}
+
+	UpdateCodeTheme(theme, cfg, settings)
+	UpdateBackground(wallpaper, cfg, settings)
+
+	err = WriteSettings(settings, cfg)
+	if err != nil {
+		return fmt.Errorf("error writing settings: %w", err)
+	}
+
+	return nil
+}
+
+func UpdateCodeTheme(theme string, cfg *config.Config, settings *map[string]interface{}) {
+	(*settings)["workbench.colorTheme"] = theme
+
+}
+
+func UpdateBackground(url string, cfg *config.Config, settings *map[string]interface{}) {
+	(*settings)["background.fullscreen.images"] = []string{url}
+}
+
+func WriteSettings(settings *map[string]interface{}, cfg *config.Config) error {
+	jsonData, err := json.MarshalIndent(settings, "", "    ")
+	if err != nil {
+		return fmt.Errorf("error marshalling settings: %w", err)
+	}
+
+	path, err := expandPath(cfg.CodeEditor.SettingsPath)
+	if err != nil {
+		return fmt.Errorf("error expanding path: %w", err)
+	}
+
+	err = os.WriteFile(path, jsonData, 0644)
+	if err != nil {
+		return fmt.Errorf("error writing settings: %w", err)
+	}
+
+	return nil
 }

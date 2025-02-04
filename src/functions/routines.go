@@ -6,25 +6,36 @@ import (
 	"github.com/eulixir/workspace-automations/config"
 )
 
-var currentTheme string
-
-func MorningRoutine(cfg *config.Config) string {
+func MorningRoutine(cfg *config.Config) {
 	morningWallpaper := cfg.Wallpaper.MorningWallpaper
+	theme := cfg.CodeEditor.MorningTheme
+	codeWallpaper := cfg.CodeEditor.MorningBackground
+
 	log.Println("Morning routine...")
 
 	SetMacOSTheme(false)
-	// updateBackground(morningBackground)
-	SetWallpaper(morningWallpaper)
-	currentTheme = "light"
 
-	return "light"
+	err := RunCodeEditorChanges(cfg, theme, codeWallpaper)
+	if err != nil {
+		log.Println("Error updating theme:", err)
+	}
+	SetWallpaper(morningWallpaper)
+
 }
 
-func NightRoutine(cfg *config.Config) string {
+func NightRoutine(cfg *config.Config) {
 	nightWallpaper := cfg.Wallpaper.NightWallpaper
+	theme := cfg.CodeEditor.NightTheme
+	codeWallpaper := cfg.CodeEditor.NightBackground
+
 	log.Println("Night routine...")
+
 	SetMacOSTheme(true)
-	// updateBackground(nightBackground)
+
+	err := RunCodeEditorChanges(cfg, theme, codeWallpaper)
+	if err != nil {
+		log.Println("Error updating theme:", err)
+	}
+
 	SetWallpaper(nightWallpaper)
-	return "dark"
 }

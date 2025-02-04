@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -24,13 +23,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	settings, err := functions.ReadSettings(cfg)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("Settings:", settings.WorkbenchColorTheme)
 
 	log.Println("Starting daemon...")
 
