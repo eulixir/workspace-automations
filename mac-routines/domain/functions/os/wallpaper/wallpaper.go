@@ -1,4 +1,4 @@
-package functions
+package wallpaper
 
 import (
 	"fmt"
@@ -7,15 +7,15 @@ import (
 	"go.uber.org/zap"
 )
 
-type MacOSWallpaperManager struct {
+type MacOSManager struct {
 	logger *zap.Logger
 }
 
-func NewMacOSWallpaperManager(logger *zap.Logger) *MacOSWallpaperManager {
-	return &MacOSWallpaperManager{logger: logger}
+func NewMacOSManager(logger *zap.Logger) *MacOSManager {
+	return &MacOSManager{logger: logger}
 }
 
-func (m *MacOSWallpaperManager) SetWallpaper(imagePath string) {
+func (m *MacOSManager) SetWallpaper(imagePath string) {
 	cmd := exec.Command("osascript", "-e", fmt.Sprintf("tell application \"System Events\" to set picture of every desktop to \"%s\"", imagePath))
 	err := cmd.Run()
 	if err != nil {
