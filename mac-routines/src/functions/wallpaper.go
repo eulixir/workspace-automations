@@ -2,14 +2,15 @@ package functions
 
 import (
 	"fmt"
-	"log"
 	"os/exec"
+
+	"go.uber.org/zap"
 )
 
-func SetWallpaper(imagePath string) {
+func SetWallpaper(imagePath string, logger *zap.Logger) {
 	cmd := exec.Command("osascript", "-e", fmt.Sprintf("tell application \"System Events\" to set picture of every desktop to \"%s\"", imagePath))
 	err := cmd.Run()
 	if err != nil {
-		log.Println("Error changing wallpaper:", err)
+		logger.Error("Error changing wallpaper:", zap.Error(err))
 	}
 }

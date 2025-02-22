@@ -6,6 +6,7 @@ import (
 
 	"github.com/eulixir/workspace-automations/config"
 	"github.com/eulixir/workspace-automations/src/functions"
+	"go.uber.org/zap"
 )
 
 func main() {
@@ -15,10 +16,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Println("Starting daemon...")
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	functions.ChangeThemeOnStart(cfg)
-	functions.SetupCronJob(cfg)
+	logger.Info("Starting daemon...")
+
+	functions.ChangeThemeOnStart(cfg, logger)
+	functions.SetupCronJob(cfg, logger)
 
 	for {
 		time.Sleep(1 * time.Hour)

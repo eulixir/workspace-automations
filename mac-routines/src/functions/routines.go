@@ -1,41 +1,40 @@
 package functions
 
 import (
-	"log"
-
 	"github.com/eulixir/workspace-automations/config"
+	"go.uber.org/zap"
 )
 
-func MorningRoutine(cfg *config.Config) {
+func MorningRoutine(cfg *config.Config, logger *zap.Logger) {
 	morningWallpaper := cfg.Wallpaper.MorningWallpaper
 	theme := cfg.CodeEditor.MorningTheme
 	codeWallpaper := cfg.CodeEditor.MorningBackground
 
-	log.Println("Morning routine...")
+	logger.Info("Morning routine...")
 
-	SetMacOSTheme(false)
+	SetMacOSTheme(false, logger)
 
 	err := RunCodeEditorChanges(cfg, theme, codeWallpaper)
 	if err != nil {
-		log.Println("Error updating theme:", err)
+		logger.Error("Error updating theme:", zap.Error(err))
 	}
-	SetWallpaper(morningWallpaper)
+	SetWallpaper(morningWallpaper, logger)
 
 }
 
-func NightRoutine(cfg *config.Config) {
+func NightRoutine(cfg *config.Config, logger *zap.Logger) {
 	nightWallpaper := cfg.Wallpaper.NightWallpaper
 	theme := cfg.CodeEditor.NightTheme
 	codeWallpaper := cfg.CodeEditor.NightBackground
 
-	log.Println("Night routine...")
+	logger.Info("Night routine...")
 
-	SetMacOSTheme(true)
+	SetMacOSTheme(true, logger)
 
 	err := RunCodeEditorChanges(cfg, theme, codeWallpaper)
 	if err != nil {
-		log.Println("Error updating theme:", err)
+		logger.Error("Error updating theme:", zap.Error(err))
 	}
 
-	SetWallpaper(nightWallpaper)
+	SetWallpaper(nightWallpaper, logger)
 }

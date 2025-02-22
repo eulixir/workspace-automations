@@ -2,14 +2,14 @@ package functions
 
 import (
 	"fmt"
-	"log"
 	"os/exec"
 	"time"
 
 	"github.com/eulixir/workspace-automations/config"
+	"go.uber.org/zap"
 )
 
-func SetMacOSTheme(isDarkMode bool) {
+func SetMacOSTheme(isDarkMode bool, logger *zap.Logger) {
 	mode := "false"
 	if isDarkMode {
 		mode = "true"
@@ -18,16 +18,16 @@ func SetMacOSTheme(isDarkMode bool) {
 	cmd := exec.Command("osascript", "-e", fmt.Sprintf("tell application \"System Events\" to tell appearance preferences to set dark mode to %s", mode))
 	err := cmd.Run()
 	if err != nil {
-		log.Println("Error changing theme:", err)
+		logger.Error("Error changing theme:", zap.Error(err))
 	}
 }
 
-func ChangeThemeOnStart(cfg *config.Config) {
+func ChangeThemeOnStart(cfg *config.Config, logger *zap.Logger) {
 	currentHour := time.Now().Hour()
 
 	if currentHour >= 6 && currentHour < 18 {
-		MorningRoutine(cfg)
+		MorningRoutine(cfg, logger)
 	} else {
-		NightRoutine(cfg)
+		NightRoutine(cfg, logger)
 	}
 }
