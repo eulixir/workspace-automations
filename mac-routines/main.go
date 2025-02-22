@@ -7,8 +7,7 @@ import (
 	"github.com/eulixir/workspace-automations/config"
 	"github.com/eulixir/workspace-automations/domain/functions/cronjob"
 	"github.com/eulixir/workspace-automations/domain/functions/editor"
-	"github.com/eulixir/workspace-automations/domain/functions/os/theme"
-	"github.com/eulixir/workspace-automations/domain/functions/os/wallpaper"
+	"github.com/eulixir/workspace-automations/domain/functions/macos"
 	"github.com/eulixir/workspace-automations/domain/functions/routines"
 	"go.uber.org/zap"
 )
@@ -35,8 +34,8 @@ func main() {
 
 func initInterfaces(cfg *config.Config, logger *zap.Logger) *routines.RoutineManager {
 
-	themeManager := theme.NewMacOSManager(logger)
-	wallpaperManager := wallpaper.NewMacOSManager(logger)
+	osManager := macos.NewOsManager(logger)
+
 	codeEditor := editor.NewEditorManager(cfg.CodeEditor.SettingsPath, logger)
 
 	settings := routines.Settings{
@@ -49,10 +48,9 @@ func initInterfaces(cfg *config.Config, logger *zap.Logger) *routines.RoutineMan
 	}
 
 	return &routines.RoutineManager{
-		Logger:           logger,
-		ThemeManager:     themeManager,
-		WallpaperManager: wallpaperManager,
-		CodeEditor:       codeEditor,
-		Settings:         settings,
+		Logger:     logger,
+		OsManager:  *osManager,
+		CodeEditor: *codeEditor,
+		Settings:   settings,
 	}
 }

@@ -7,7 +7,7 @@ import (
 func (r *RoutineManager) NightRoutine() {
 	r.Logger.Info("Starting night routine...")
 
-	r.ThemeManager.SetMacOSTheme(true)
+	r.OsManager.SetMacOSTheme(true)
 
 	err := r.CodeEditor.UpdateEditorSettings(
 		r.Settings.CodeNightTheme,
@@ -17,5 +17,5 @@ func (r *RoutineManager) NightRoutine() {
 		r.Logger.Error("Error updating theme:", zap.Error(err))
 	}
 
-	r.WallpaperManager.SetWallpaper(r.Settings.NightWallpaper)
+	r.OsManager.SetWallpaper(r.Settings.NightWallpaper)
 }

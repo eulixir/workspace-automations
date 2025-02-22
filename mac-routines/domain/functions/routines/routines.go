@@ -3,15 +3,16 @@ package routines
 import (
 	"time"
 
+	"github.com/eulixir/workspace-automations/domain/functions/editor"
+	"github.com/eulixir/workspace-automations/domain/functions/macos"
 	"go.uber.org/zap"
 )
 
 type RoutineManager struct {
-	Logger           *zap.Logger
-	ThemeManager     ThemeManager
-	WallpaperManager WallpaperManager
-	CodeEditor       CodeEditor
-	Settings         Settings
+	Logger     *zap.Logger
+	OsManager  macos.OsManager
+	CodeEditor editor.EditorManager
+	Settings   Settings
 }
 
 type Settings struct {
@@ -21,18 +22,6 @@ type Settings struct {
 	CodeNightTheme   string
 	CodeMorningBg    string
 	CodeNightBg      string
-}
-
-type ThemeManager interface {
-	SetMacOSTheme(isDarkMode bool)
-}
-
-type WallpaperManager interface {
-	SetWallpaper(imagePath string)
-}
-
-type CodeEditor interface {
-	UpdateEditorSettings(theme, wallpaper string) error
 }
 
 func (r *RoutineManager) ChangeThemeOnStart() {

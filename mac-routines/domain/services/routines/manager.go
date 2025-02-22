@@ -1,7 +1,8 @@
 package routines
 
 import (
-	"github.com/eulixir/workspace-automations/domain/interfaces"
+	"github.com/eulixir/workspace-automations/domain/functions/editor"
+	"github.com/eulixir/workspace-automations/domain/functions/macos"
 	"go.uber.org/zap"
 )
 
@@ -15,25 +16,22 @@ type Settings struct {
 }
 
 type Manager struct {
-	Logger           *zap.Logger
-	ThemeManager     interfaces.ThemeManager
-	WallpaperManager interfaces.WallpaperManager
-	CodeEditor       interfaces.Editor
-	Settings         Settings
+	Logger     *zap.Logger
+	OsManager  macos.OsManager
+	CodeEditor editor.EditorManager
+	Settings   Settings
 }
 
 func NewManager(
 	logger *zap.Logger,
-	theme interfaces.ThemeManager,
-	wallpaper interfaces.WallpaperManager,
-	editor interfaces.Editor,
+	osManager macos.OsManager,
+	codeEditor editor.EditorManager,
 	settings Settings,
 ) *Manager {
 	return &Manager{
-		Logger:           logger,
-		ThemeManager:     theme,
-		WallpaperManager: wallpaper,
-		CodeEditor:       editor,
-		Settings:         settings,
+		Logger:     logger,
+		OsManager:  osManager,
+		CodeEditor: codeEditor,
+		Settings:   settings,
 	}
 }
