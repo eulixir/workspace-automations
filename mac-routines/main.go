@@ -1,32 +1,57 @@
 package main
 
 import (
-	"log"
+	"os"
 	"time"
 
 	"github.com/eulixir/workspace-automations/config"
-	"github.com/eulixir/workspace-automations/src/functions"
+	"github.com/eulixir/workspace-automations/domain/functions"
+	"github.com/eulixir/workspace-automations/domain/functions/cronjob"
+	"github.com/eulixir/workspace-automations/domain/functions/editor"
+	"github.com/eulixir/workspace-automations/domain/functions/routines"
 	"go.uber.org/zap"
 )
 
 func main() {
+	logger := zap.NewExample()
 
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		log.Fatal(err)
+		logger.Error("Error loading config:", zap.Error(err))
+		os.Exit(1)
 	}
 
-	logger, err := zap.NewDevelopment()
-	if err != nil {
-		log.Fatal(err)
-	}
+	routineManager := initInterfaces(cfg, logger)
 
-	logger.Info("Starting daemon...")
+	routineManager.ChangeThemeOnStart()
 
-	functions.ChangeThemeOnStart(cfg, logger)
-	functions.SetupCronJob(cfg, logger)
+	cronjob.SetupCronJob(routineManager)
 
 	for {
 		time.Sleep(1 * time.Hour)
+	}
+}
+
+func initInterfaces(cfg *config.Config, logger *zap.Logger) *routines.RoutineManager {
+
+	themeManager := functions.NewMacOSThemeManager(logger)
+	wallpaperManager := functions.NewMacOSWallpaperManager(logger)
+	codeEditor := editor.NewEditorManager(cfg.CodeEditor.SettingsPath, logger)
+
+	settings := routines.Settings{
+		MorningWallpaper: cfg.Wallpaper.MorningWallpaper,
+		NightWallpaper:   cfg.Wallpaper.NightWallpaper,
+		CodeMorningTheme: cfg.CodeEditor.MorningTheme,
+		CodeNightTheme:   cfg.CodeEditor.NightTheme,
+		CodeMorningBg:    cfg.CodeEditor.MorningBackground,
+		CodeNightBg:      cfg.CodeEditor.NightBackground,
+	}
+
+	return &routines.RoutineManager{
+		Logger:           logger,
+		ThemeManager:     themeManager,
+		WallpaperManager: wallpaperManager,
+		CodeEditor:       codeEditor,
+		Settings:         settings,
 	}
 }

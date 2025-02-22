@@ -12,7 +12,7 @@ This package contains routines that are specific to macOS.
   - Setup cron job
   - Change OS theme
   - Change wallpaper
-  - Change ide (cursor, vscode) theme and wallpaper
+  - Change ide (cursor, CodeEditor) theme and wallpaper
 
 ### Room Controller
 
