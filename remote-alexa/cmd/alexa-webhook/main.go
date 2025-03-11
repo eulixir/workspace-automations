@@ -19,21 +19,30 @@ func main() {
 
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		log.Fatalf("Failed to load config: %v", err)
+		logger.Error("Failed to load config", zap.Error(err))
 	}
 
-	router := setupRouter()
+	router, err := setupRouter(cfg)
+	if err != nil {
+		logger.Error("Failed to setup router", zap.Error(err))
+	}
 
 	logger.Info("Starting server on port", zap.String("port", cfg.Port))
 	router.Run(fmt.Sprintf(":%s", cfg.Port))
 }
 
-func setupRouter() *gin.Engine {
+func setupRouter(cfg *config.Config) (*gin.Engine, error) {
 	router := gin.Default()
 
+	err := middlewares.ProxyMiddleware(router)
+	if err != nil {
+		return nil, err
+	}
+
 	router.Use(middlewares.RateLimiter)
+	router.Use(middlewares.CORSMiddleware(cfg.Env))
 
 	routes.SetupRoutes(router)
 
-	return router
+	return router, nil
 }
